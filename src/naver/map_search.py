@@ -5,6 +5,12 @@ import sys
 import urllib.request
 import pymysql.cursors
 import requests
+import math
+from time import sleep
+
+DISPLAY_LENGTH = 100
+CURRENT_PAGE_NUMBER = 1
+START = 1
 
 
 def setupMysql():
@@ -19,13 +25,29 @@ def setupMysql():
 
 def init():
 
+    parseData()
+
     mysql = setupMysql()
 
-    CLIENT_ID = 'qbv04mfrYu64rYqsiI2t'
-    CLIENT_SECRET = 'gUO_jURByQ'
-    TERM = '강남 미용'
+    with mysql.cursor() as cursor:
+        sql = '''
+        SELECT
+            *
+        FROM
+            leads
+        '''
+        cursor.execute(sql)
 
-    url = "https://openapi.naver.com/v1/search/local?query=%s" % TERM
+
+def parseData():
+    CLIENT_ID = 'qbv04mfrYu64rYqsiI2t'
+    CLIENT_SECRET = '32vZm4Wk8R'
+    TERM = '강남 미용'.encode('utf-8')
+    global CURRENT_PAGE_NUMBER
+    global START
+
+    url = "https://openapi.naver.com/v1/search/local?query=%s&display=%s&start=%s" % (
+        TERM, DISPLAY_LENGTH, START)
     headers = {
         'X-Naver-Client-Id': CLIENT_ID,
         'X-Naver-Client-Secret': CLIENT_SECRET
@@ -38,9 +60,21 @@ def init():
         json = res.json()
 
         all_count = json['total']
-        print(all_count)
+        total_page_number = math.ceil(all_count / DISPLAY_LENGTH)
+        item = json['items']
+        print(item)
+
+        if (CURRENT_PAGE_NUMBER < total_page_number):
+            CURRENT_PAGE_NUMBER = CURRENT_PAGE_NUMBER + 1
+            START = START + DISPLAY_LENGTH
+            sleep(1)
+            parseData()
+        else:
+            return print('Done.')
+
     else:
-        print("Error Code:" + rescode)
+        print(res)
+        return print("Error Code:" + rescode)
 
 
 # run
