@@ -16,7 +16,8 @@ def setupMysql():
 
 
 def setupDriver():
-    driver = webdriver.Chrome('/Users/Friday/dev/assets/drivers/chromedriver')
+    driver = webdriver.Chrome(
+        r"C:\Users\peter\Desktop\dev\assets\drivers/chromedriver.exe")
     driver.implicitly_wait(3)
     return driver
 
@@ -33,8 +34,11 @@ def init():
 
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
+
+    result_count = soup.find('span', class_='n').em.string
     list = soup.select(
         '#panel > div.panel_content.nano.has-scrollbar > div.scroll_pane.content > div.panel_content_flexible > div.search_result > ul > li')
+
     for item in list:
 
         title = item.find('a').get_text()
@@ -42,11 +46,11 @@ def init():
         telephone = item.find('dd', class_="tel").string.strip()
         category = item.find('dd', class_="cate").string.strip()
         img_url = item.find('img').get('src')
-        print(title)
-        print(roadAddress)
-        print(telephone)
-        print(category)
-        print(img_url)
+        # print(title)
+        # print(roadAddress)
+        # print(telephone)
+        # print(category)
+        # print(img_url)
 
 
 if __name__ == '__main__':
