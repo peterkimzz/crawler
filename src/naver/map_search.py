@@ -51,14 +51,14 @@ def parseData():
     # get locations
     locations = getLocations()
 
-    lists = ['네일', '피부', '타투', '문신', '왁싱', '미용']
+    lists = ['네일', '피부', '타투', '마사지', '왁싱']
 
     # for location in locations:
     #     loc = location['name']
     #     keyword = loc + ' 피부'
     #     searchNaverLocalAPI(keyword)
 
-    keyword = '강남구 압구정동 왁싱'
+    keyword = '강남구 압구정동 마사지'
     searchNaverLocalAPI(keyword)
 
 
