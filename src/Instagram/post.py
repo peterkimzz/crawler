@@ -105,14 +105,14 @@ def init_test():
                 'span', class_='zV_Nj').find('span').string
             source = post_detail.find('img', class_='FFVAD').get('src')
 
-        print('')
-        print('content_type', content_type)
-        print('source:', source)
-        print('activity_amount', activity_amount)
-        print('thumbnail_img:', thumbnaiL_img)
-        print('description', description)
-        print('hashtag', hashtag)
-        print('createdDate', createdDate)
+        # print('')
+        # print('content_type', content_type)
+        # print('source:', source)
+        # print('activity_amount', activity_amount)
+        # print('thumbnail_img:', thumbnaiL_img)
+        # print('description', description)
+        # print('hashtag', hashtag)
+        # print('createdDate', createdDate)
 
         next_button = driver.find_element_by_css_selector('.HBoOv').click()
         sleep(3)
@@ -152,11 +152,10 @@ def getAccounts():
 
 def insertRow(post):
 
-    print(post)
-
     parentId = post['parent_id']
     title = ''
     description = post['description']
+    hashtag = post['hashtag']
     content_type = post['content_type']
     activity_amount = post['activity_amount']
     src = post['src']
@@ -169,9 +168,10 @@ def insertRow(post):
         with mysql.cursor(pymysql.cursors.DictCursor) as cursor:
             sql = '''
                 INSERT INTO
-                    news (parentId, title, description, likeCount, thumbnail, content_type, src, source, date)
-                    VALUES (%s, "%s", "%s", %s, "%s", "%s", "%s", "%s", %s)
-                ''' % (parentId, title, description, activity_amount, thumbnail, content_type, src, source, createdDate)
+                    news (parentId, title, description, hashtag, likeCount, thumbnail, contentType, src, source, date)
+                    VALUES (%s, "%s", "%s", "%s", %s, "%s", "%s", "%s", "%s", "%s")
+                ''' % (parentId, title, description, hashtag, activity_amount, thumbnail, content_type, src, source, createdDate)
+            print(sql)
             cursor.execute(sql)
             mysql.commit()
             print('updated.', parentId)
