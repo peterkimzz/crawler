@@ -37,7 +37,7 @@ def init():
 
             global content_type, src, activity_amount
             thumbnaiL_img = post_detail.find('img', class_='_6q-tv').get('src')
-            hashtag = post_detail.find('img', class_='FFVAD').get('alt')
+            # hashtag = post_detail.find('img', class_='FFVAD').get('alt')
             description = post_detail.find(
                 'div', class_='C4VMK').get_text().strip()
             # createdDate = post_detail.find('time').get('datetime')
@@ -62,7 +62,7 @@ def init():
                 'activity_amount': activity_amount,
                 'thumbnail_img': thumbnaiL_img,
                 'description': description,
-                'hashtag': hashtag,
+                # 'hashtag': hashtag,
                 'createdDate': createdDate
             }
             insertRow(post)
@@ -80,10 +80,21 @@ def init_test():
         '//*[@id="react-root"]/section/main/div/div[2]/article/div[1]/div/div[1]/div[1]/a').click()
     sleep(3)
 
-    for i in ['1', '2']:
+    for i in range(0, 9):
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         post_detail = soup.find('article', class_='M9sTE')
+
+        print('시작')
+        # print(post_detail.prettify())
+        tags1 = post_detail.find_all(lambda tag: 'src' in tag.attrs)
+        tags2 = post_detail.find_all(lambda tag: tag.has_attr('src'))
+        tag = post_detail.find(lambda tag: tag.name ==
+                               'script' and 'src' in tag.attrs)
+
+        for i, tag in enumerate(tags1):
+            print('\n', i)
+            print(tag)
 
         # Check image or video
         isVideoType = len(post_detail.find_all('video')) > 0
@@ -115,7 +126,7 @@ def init_test():
         # print('createdDate', createdDate)
 
         next_button = driver.find_element_by_css_selector('.HBoOv').click()
-        sleep(3)
+        sleep(1.5)
 
 
 def setupMySQL():
@@ -155,7 +166,7 @@ def insertRow(post):
     parentId = post['parent_id']
     title = ''
     description = post['description']
-    hashtag = post['hashtag']
+    # hashtag = post['hashtag']
     content_type = post['content_type']
     activity_amount = post['activity_amount']
     src = post['src']
@@ -168,10 +179,10 @@ def insertRow(post):
         with mysql.cursor(pymysql.cursors.DictCursor) as cursor:
             sql = '''
                 INSERT INTO
-                    news (parentId, title, description, hashtag, likeCount, thumbnail, contentType, src, source, date)
+                    news (parentId, title, description, likeCount, thumbnail, contentType, src, source, date)
                     VALUES (%s, "%s", "%s", "%s", %s, "%s", "%s", "%s", "%s", "%s")
-                ''' % (parentId, title, description, hashtag, activity_amount, thumbnail, content_type, src, source, createdDate)
-            print(sql)
+                ''' % (parentId, title, description, activity_amount, thumbnail, content_type, src, source, createdDate)
+            # print(sql)
             cursor.execute(sql)
             mysql.commit()
             print('updated.', parentId)
@@ -204,5 +215,5 @@ def setDriver():
 
 
 if __name__ == '__main__':
-    init()
-    # init_test()
+    # init()
+    init_test()
