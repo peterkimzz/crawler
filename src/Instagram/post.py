@@ -2,10 +2,12 @@ from time import sleep
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import NoSuchElementException
+from slacker import Slacker
 import pymysql
 
 __author__ = "Peter Kim"
-__version__ = "0.1"
+__version__ = "0.2"
 
 BASE_URL = "https://www.instagram.com/explore/tags"
 LOGIN_URL = "https://www.instagram.com/accounts/login/"
@@ -15,69 +17,118 @@ LOGIN_URL = "https://www.instagram.com/accounts/login/"
 # buttonXPath = "//*[@id="react-root"]/section/main/div/article/div/div[1]/div/form/span/button"
 
 
+def check_exists_by_xpath(xpath):
+    try:
+        webdriver.find_element_by_xpath(xpath)
+    except NoSuchElementException:
+        return False
+    return True
+
+
+def check_exists_by_class_name(class_name):
+    try:
+        webdriver.find_element_by_xpath(xpath)
+    except NoSuchElementException:
+        return False
+    return True
+
+
+def initSlacker():
+    token = 'xoxp-363734903206-362743041043-431786866981-09c9980d66df22317223f81615e7dc79'
+    slack = Slacker(token)
+    return slack
+
+
+def send_message_to_slack():
+    slack = initSlacker()
+    slack.chat.post_message('#notifications', 'hi', as_user=True)
+
+
 def init():
     accounts = getAccounts()
+    slack = initSlacker()
 
     for account in accounts:
         driver = setDriver()
+        account_id = account['id']
         insta_link = account['instagram']
-        print('%s is started' % insta_link)
+        noti = 'Account ID %s (%s) is started' % (account_id, insta_link)
+        send_message_to_slack()
+        print(noti)
         driver.get(insta_link)
-        first_post = driver.find_element_by_xpath(
-            '//*[@id="react-root"]/section/main/div/div[2]/article/div[1]/div/div[1]/div[1]/a').click()
-        sleep(3)
+        is_closed = False
 
-        for i in range(0, 9):
-            html = driver.page_source
-            soup = BeautifulSoup(html, 'html.parser')
-            post_detail = soup.find('article', class_='M9sTE')
+        try:
+            page = driver.find_element_by_class_name('FyNDV')
+        except NoSuchElementException:
+            print('%s is closed.' % insta_link)
+            is_closed = True
 
-            # Check image or video
-            isVideoType = len(post_detail.find_all('video')) > 0
+        if is_closed == False:
+            posts = driver.find_element_by_class_name('FyNDV').click()
 
-            global content_type, src, activity_amount
-            thumbnaiL_img = post_detail.find('img', class_='_6q-tv').get('src')
-            # hashtag = post_detail.find('img', class_='FFVAD').get('alt')
-            description = post_detail.find(
-                'div', class_='C4VMK').get_text().strip()
-            # createdDate = post_detail.find('time').get('datetime')
-            createdDate = post_detail.find('time').get('title')
+            sleep(3)
 
-            if (isVideoType):
-                content_type = 'video'
-                activity_amount = post_detail.find(
-                    'span', class_='vcOH2').find('span').string
-                src = post_detail.find('video', class_="tWeCl").get('src')
-            else:
-                content_type = 'image'
-                activity_amount = post_detail.find(
-                    'span', class_='zV_Nj').find('span').string
-                src = post_detail.find('img', class_='FFVAD').get('src')
+            for i in range(0, 9):
+                html = driver.page_source
+                soup = BeautifulSoup(html, 'html.parser')
+                post_detail = soup.find('article', class_='M9sTE')
+                print(post_detail.prettify())
 
-            post = {
-                'parent_id': account['id'],
-                'content_type': content_type,
-                'src': src,
-                'source': 'instagram',
-                'activity_amount': activity_amount,
-                'thumbnail_img': thumbnaiL_img,
-                'description': description,
-                # 'hashtag': hashtag,
-                'createdDate': createdDate
-            }
-            insertRow(post)
+                # Check image or video
+                # isVideoType = len(post_detail.find_all('video')) > 0
 
-            next_button = driver.find_element_by_css_selector('.HBoOv').click()
-            sleep(2)
+                # global content_type, src, activity_amount
+                # thumbnaiL_img = post_detail.find('img', class_='_6q-tv').get('src')
+                # hashtag = post_detail.find('img', class_='FFVAD').get('alt')
+                # description = post_detail.find(
+                #     'div', class_='C4VMK').get_text().strip()
+                # createdDate = post_detail.find('time').get('datetime')
+                # createdDate = post_detail.find('time').get('title')
+
+                # if (isVideoType):
+                #     content_type = 'video'
+                #     activity_amount = post_detail.find(
+                #         'span', class_='vcOH2').find('span').string
+                #     src = post_detail.find('video', class_="tWeCl").get('src')
+                # else:
+                #     content_type = 'image'
+                #     activity_amount = post_detail.find(
+                #         'span', class_='zV_Nj').find('span').string
+                #     src = post_detail.find('img', class_='FFVAD').get('src')
+
+                # post = {
+                #     'parent_id': account['id'],
+                #     'content_type': content_type,
+                #     'src': src,
+                #     'source': 'instagram',
+                #     'activity_amount': activity_amount,
+                #     'thumbnail_img': thumbnaiL_img,
+                #     'description': description,
+                #     # 'hashtag': hashtag,
+                #     'createdDate': createdDate
+                # }
+                # insertRow(post)
+
+                next_button = driver.find_element_by_css_selector(
+                    '.HBoOv').click()
+                sleep(1.5)
 
 
 def init_test():
 
     driver = setDriver()
-    insta_link = 'https://www.instagram.com/so.so_beauty/'
+    insta_link = 'https://www.instagram.com/soopianail/'
     driver.get(insta_link)
-    first_post = driver.find_element_by_xpath(
-        '//*[@id="react-root"]/section/main/div/div[2]/article/div[1]/div/div[1]/div[1]/a').click()
+
+    try:
+        page = driver.find_element_by_class_name('FyNDV')
+    except NoSuchElementException:
+        print('Page not found.')
+        return
+
+    # return
+
     sleep(3)
 
     for i in range(0, 9):
@@ -85,16 +136,16 @@ def init_test():
         soup = BeautifulSoup(html, 'html.parser')
         post_detail = soup.find('article', class_='M9sTE')
 
-        print('시작')
-        # print(post_detail.prettify())
-        tags1 = post_detail.find_all(lambda tag: 'src' in tag.attrs)
-        tags2 = post_detail.find_all(lambda tag: tag.has_attr('src'))
-        tag = post_detail.find(lambda tag: tag.name ==
-                               'script' and 'src' in tag.attrs)
+        print('\n\n\n\n')
+        print(post_detail.prettify())
+        # tags1 = post_detail.find_all(lambda tag: 'src' in tag.attrs)
+        # tags2 = post_detail.find_all(lambda tag: tag.has_attr('src'))
+        # tag = post_detail.find(lambda tag: tag.name ==
+        #                        'script' and 'src' in tag.attrs)
 
-        for i, tag in enumerate(tags1):
-            print('\n', i)
-            print(tag)
+        # for i, tag in enumerate(tags1):
+        #     print('\n', i)
+        #     print(tag)
 
         # Check image or video
         isVideoType = len(post_detail.find_all('video')) > 0
@@ -215,5 +266,6 @@ def setDriver():
 
 
 if __name__ == '__main__':
-    # init()
-    init_test()
+
+    init()
+    # init_test()
