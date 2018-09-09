@@ -34,14 +34,9 @@ def check_exists_by_class_name(class_name):
 
 
 def initSlacker():
-    token = 'xoxp-363734903206-362743041043-431786866981-09c9980d66df22317223f81615e7dc79'
+    token = 'xoxb-363734903206-431926758755-BO6XrPDrPlx4pHz6Onc13ZrZ'
     slack = Slacker(token)
     return slack
-
-
-def send_message_to_slack():
-    slack = initSlacker()
-    slack.chat.post_message('#notifications', 'hi', as_user=True)
 
 
 def init():
@@ -52,16 +47,17 @@ def init():
         driver = setDriver()
         account_id = account['id']
         insta_link = account['instagram']
-        noti = 'Account ID %s (%s) is started' % (account_id, insta_link)
-        send_message_to_slack()
-        print(noti)
+        # noti = 'Account ID %s (%s) is started' % (account_id, insta_link)
+        # slack.chat.post_message('#notifications', noti)
         driver.get(insta_link)
         is_closed = False
 
+        # Check if a page is closed
         try:
             page = driver.find_element_by_class_name('FyNDV')
         except NoSuchElementException:
-            print('%s is closed.' % insta_link)
+            closed_msg = '%s is closed.' % insta_link
+            slack.chat.post_message('#notifications', closed_msg)
             is_closed = True
 
         if is_closed == False:
