@@ -56,8 +56,16 @@ def init():
         try:
             page = driver.find_element_by_class_name('FyNDV')
         except NoSuchElementException:
+
             closed_msg = '%s is closed.' % insta_link
-            slack.chat.post_message('#notifications', closed_msg)
+            attachments = [{
+                "color": "red",
+                "title": "신규도서",
+                "title_link": "http://127.0.0.1:7000/books/list/",
+                "fallback": "신규도서 알림",
+                "text": closed_msg
+            }]
+            slack.chat.post_message('#notifications', attachments=attachments)
             is_closed = True
 
         if is_closed == False:
@@ -69,46 +77,51 @@ def init():
                 html = driver.page_source
                 soup = BeautifulSoup(html, 'html.parser')
                 post_detail = soup.find('article', class_='M9sTE')
-                print(post_detail.prettify())
 
-                # Check image or video
-                # isVideoType = len(post_detail.find_all('video')) > 0
+                if post_detail == None:
+                    print('No posts')
+                    return
+                else:
+                    print(post_detail.prettify())
 
-                # global content_type, src, activity_amount
-                # thumbnaiL_img = post_detail.find('img', class_='_6q-tv').get('src')
-                # hashtag = post_detail.find('img', class_='FFVAD').get('alt')
-                # description = post_detail.find(
-                #     'div', class_='C4VMK').get_text().strip()
-                # createdDate = post_detail.find('time').get('datetime')
-                # createdDate = post_detail.find('time').get('title')
+                    # Check image or video
+                    # isVideoType = len(post_detail.find_all('video')) > 0
 
-                # if (isVideoType):
-                #     content_type = 'video'
-                #     activity_amount = post_detail.find(
-                #         'span', class_='vcOH2').find('span').string
-                #     src = post_detail.find('video', class_="tWeCl").get('src')
-                # else:
-                #     content_type = 'image'
-                #     activity_amount = post_detail.find(
-                #         'span', class_='zV_Nj').find('span').string
-                #     src = post_detail.find('img', class_='FFVAD').get('src')
+                    # global content_type, src, activity_amount
+                    # thumbnaiL_img = post_detail.find('img', class_='_6q-tv').get('src')
+                    # hashtag = post_detail.find('img', class_='FFVAD').get('alt')
+                    # description = post_detail.find(
+                    #     'div', class_='C4VMK').get_text().strip()
+                    # createdDate = post_detail.find('time').get('datetime')
+                    # createdDate = post_detail.find('time').get('title')
 
-                # post = {
-                #     'parent_id': account['id'],
-                #     'content_type': content_type,
-                #     'src': src,
-                #     'source': 'instagram',
-                #     'activity_amount': activity_amount,
-                #     'thumbnail_img': thumbnaiL_img,
-                #     'description': description,
-                #     # 'hashtag': hashtag,
-                #     'createdDate': createdDate
-                # }
-                # insertRow(post)
+                    # if (isVideoType):
+                    #     content_type = 'video'
+                    #     activity_amount = post_detail.find(
+                    #         'span', class_='vcOH2').find('span').string
+                    #     src = post_detail.find('video', class_="tWeCl").get('src')
+                    # else:
+                    #     content_type = 'image'
+                    #     activity_amount = post_detail.find(
+                    #         'span', class_='zV_Nj').find('span').string
+                    #     src = post_detail.find('img', class_='FFVAD').get('src')
 
-                next_button = driver.find_element_by_css_selector(
-                    '.HBoOv').click()
-                sleep(1.5)
+                    # post = {
+                    #     'parent_id': account['id'],
+                    #     'content_type': content_type,
+                    #     'src': src,
+                    #     'source': 'instagram',
+                    #     'activity_amount': activity_amount,
+                    #     'thumbnail_img': thumbnaiL_img,
+                    #     'description': description,
+                    #     # 'hashtag': hashtag,
+                    #     'createdDate': createdDate
+                    # }
+                    # insertRow(post)
+
+                    next_button = driver.find_element_by_css_selector(
+                        '.HBoOv').click()
+                    sleep(1.5)
 
 
 def init_test():
@@ -199,7 +212,8 @@ def getAccounts():
                 FROM
                     leads_naver_gangnam
                 WHERE
-                    instagram > ""
+                    instagram > "" AND
+                    id > 409
                 '''
             cursor.execute(sql)
             rows = cursor.fetchall()
