@@ -13,10 +13,13 @@ class Selenium:
             "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
         options.add_argument("lang=ko_KR")
 
-        driver = webdriver.Chrome(
-            r"C:\Users\peter\Desktop\dev\assets\drivers/chromedriver.exe", options=options)
+        # driver = webdriver.Chrome(
+        #     r"C:\Users\peter\Desktop\dev\assets\drivers/chromedriver.exe", options=options)
 
-        print('Headless Chrome Selenium is created.')
+        driver = webdriver.Chrome(
+            '/Users/donghyunkim/dev/drivers/chromedriver', options=options)
+
+        print('Headless Chrome is created.')
 
         driver.implicitly_wait(3)
-    #     self = driver
+        self.driver = driver
