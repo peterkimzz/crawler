@@ -9,7 +9,7 @@ class Slack():
 
         self.slack = slack
 
-    def send_message(self, text=None, channel='#notifications', attachments=None):
+    def send_message(self, text="", channel='#notifications', attachments=None):
 
         self.slack.chat.post_message(
             text=text, channel=channel, attachments=attachments)
