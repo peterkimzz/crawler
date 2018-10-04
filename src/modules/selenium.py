@@ -17,9 +17,7 @@ class Selenium:
         #     r"C:\Users\peter\Desktop\dev\assets\drivers/chromedriver.exe", options=options)
 
         driver = webdriver.Chrome(
-            '/Users/donghyunkim/dev/drivers/chromedriver', options=options)
-
-        print('Headless Chrome is created.')
+            '/Users/donghyunkim/dev/drivers/chromedriver')
 
         driver.implicitly_wait(3)
         self.driver = driver

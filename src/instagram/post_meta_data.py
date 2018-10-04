@@ -19,7 +19,7 @@ def get_leads():
     mysql = Mysql()
     sql = '''
     SELECT
-        id,
+        id AS leadId,
         title,
         instagram,
         imgSrc
@@ -32,42 +32,50 @@ def get_leads():
     return rows
 
 
-def get_contents(post_links):
+def get_content(driver):
+    html = driver.page_source
+    soup = bs(html, 'html.parser')
+    post_detail = soup.find('article')
+    img = post_detail.find('img')
+    print(img)
 
-    for link in post_links:
-        print(link)
 
+def get_posts():
+    # lead_id = lead['leadId']
+    # url = lead['instagram']
+    url = 'https://www.instagram.com/yn0202/'
 
-def get_posts(lead):
-    url = lead['instagram']
+    driver = Selenium().driver
+    driver.get(url)
 
     try:
-        driver = Selenium().driver
-        driver.get(url)
-        html = driver.page_source
-        soup = bs(html, 'html.parser')
+        # 첫 번째 포스트 찾아서 디테일 팝업 띄우기
+        driver.find_element_by_class_name('v1Nh3').click()
 
-        title = soup.title.string.strip()
-        is_deleted = 'Page Not Found' in title
+        # 팝업 소스로부터 데이터 추출
+        while(True):
+            # 동적 로딩이기 때문에 ajax를 기다리자
+            time.sleep(5)
 
-        if (is_deleted == False):
-            article = soup.find_all('article', class_='FyNDV')
-            print(len(article))
-        else:
-            # update is_deleted = 1 on db
-            pass
+            html = driver.page_source
+            soup = bs(html, 'html.parser')
+            post_detail = soup.find('article', class_='M9sTE')
+            img = post_detail.find('div', class_='KL4Bh')
+            a_tag = post_detail.select(
+                'body > div:nth-child(15) > div > div.EfHg9 > div > div > a').click()
 
     except:
-        print("Connection refused by the server. ")
-        print('Continue after 5 seconds.')
-        time.sleep(5)
+        print('error ocurred.')
+        pass
 
 
 if __name__ == '__main__':
 
     slack = Slack()
-    slack.send_message("Instagram Post Crawler Started")
+    # slack.send_message("Instagram Post Crawler Started")
+
+    get_posts()
 
     # multi-processing
-    pool = Pool(processes=1)
-    pool.map(get_posts, get_leads())
+    # pool = Pool(processes=1)
+    # pool.map(get_posts, get_leads())
