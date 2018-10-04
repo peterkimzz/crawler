@@ -19,7 +19,5 @@ class Selenium:
         driver = webdriver.Chrome(
             '/Users/donghyunkim/dev/drivers/chromedriver', options=options)
 
-        print('Headless Chrome is created.')
-
         driver.implicitly_wait(3)
         self.driver = driver

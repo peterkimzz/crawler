@@ -27,3 +27,12 @@ class Mysql():
                 return rows
         except:
             print("MySQL select query get error.")
+
+    def update(self, sql):
+        try:
+            with self.conn.cursor(self.pymysql.cursors.DictCursor) as cursor:
+                cursor.execute(sql)
+                self.conn.commit()
+
+        except:
+            print("MySQL insert query get error.")
