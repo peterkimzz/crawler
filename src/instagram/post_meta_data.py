@@ -24,7 +24,8 @@ def get_leads():
         l.id AS leadId,
         l.title,
         l.instagram,
-        n.thumbnailUrl AS latestThumbnailUrl
+        n.thumbnailUrl AS latestThumbnailUrl,
+        n.link AS latestLink
 
     FROM 
         leads l
@@ -32,28 +33,26 @@ def get_leads():
     LEFT JOIN
     	news n
     ON
-    	n.id IN (
-                SELECT
-                    MIN(id)
-                FROM
-                    news
-                WHERE
-                    leadId = l.id
-                )
+    	n.leadId = l.id
 
     WHERE
     	l.isDeleted != 1 AND
         l.instagram > ""
+
+    GROUP BY
+        l.id
     '''
     rows = mysql.select(sql)
     return rows
 
 
 def get_posts(lead):
+    print(lead)
     lead_id = lead['leadId']
     title = lead['title']
     url = lead['instagram']
-    latest_thumbnail_url = lead['latestThumbnailUrl']
+    latest_link = lead['latestLink']
+    # latest_thumbnail_url = lead['latestThumbnailUrl']
 
     driver = Selenium().driver
     driver.get(url)
@@ -87,7 +86,7 @@ def get_posts(lead):
                     'time', class_='_1o9PC').get('datetime')
                 link = driver.current_url
 
-                if (latest_thumbnail_url == thumbnail_url):
+                if (latest_link == link):
                     print('새로 등록된 포스트가 없습니다.')
                     return
                 else:
@@ -100,7 +99,8 @@ def get_posts(lead):
                     mysql.update(sql)
 
             except:
-                slack.send_message('인스타그램 HTML DOM 구조 변경이 감지되었습니다.')
+                print('DOM 구조 변경')
+                # slack.send_message('인스타그램 HTML DOM 구조 변경이 감지되었습니다.')
 
             finally:
                 try:
@@ -112,11 +112,12 @@ def get_posts(lead):
                     return
 
     except:
+        print('오류')
         slack.send_message('''
         삭제된 페이지거나 오류가 있습니다.
         lead id: %s
         이름: %s
-        주소: %s
+        링크: %s
         ''' % lead_id, title, url)
         # mysql = Mysql()
         # mysql.update('''
@@ -131,7 +132,9 @@ def get_posts(lead):
 
 if __name__ == '__main__':
 
+    slack.send_message('인스타그램 스파이더가 최신 포스트들을 크롤링합니다.')
+
     # multi-processing
     # leads = ['https://www.instagram.com/trala_nail/']
-    pool = Pool(processes=3)
+    pool = Pool(processes=4)
     pool.map(get_posts, get_leads())
