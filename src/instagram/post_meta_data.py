@@ -29,18 +29,22 @@ def get_leads():
 
     FROM 
         leads l
-
-    LEFT JOIN
-    	news n
-    ON
-    	n.leadId = l.id
+        
+    LEFT JOIN 
+	    news n
+	ON
+		n.id = (
+		SELECT MAX(id)
+		FROM news
+		WHERE leadId = l.id
+		)
 
     WHERE
     	l.isDeleted != 1 AND
         l.instagram > ""
-
+        
     GROUP BY
-        l.id
+    	l.id
     '''
     rows = mysql.select(sql)
     return rows
@@ -112,13 +116,14 @@ def get_posts(lead):
                     return
 
     except:
-        print('오류')
-        slack.send_message('''
+        msg = '''
         삭제된 페이지거나 오류가 있습니다.
         lead id: %s
         이름: %s
         링크: %s
-        ''' % lead_id, title, url)
+        ''' % (lead_id, title, url)
+        slack.send_message(msg)
+        print(msg)
         # mysql = Mysql()
         # mysql.update('''
         # UPDATE
